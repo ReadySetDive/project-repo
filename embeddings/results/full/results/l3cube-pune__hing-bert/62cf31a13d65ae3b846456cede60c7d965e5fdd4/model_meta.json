@@ -1,0 +1,44 @@
+{
+    "loader_kwargs": {},
+    "name": "l3cube-pune/hing-bert",
+    "revision": "62cf31a13d65ae3b846456cede60c7d965e5fdd4",
+    "release_date": "2022-03-04",
+    "languages": [
+        "eng-Latn",
+        "hin-Deva"
+    ],
+    "n_parameters": 109514810,
+    "n_active_parameters_override": null,
+    "n_embedding_parameters": 23440896,
+    "memory_usage_mb": 418,
+    "max_tokens": 512,
+    "embed_dim": 768,
+    "license": "cc-by-4.0",
+    "open_weights": null,
+    "public_training_code": null,
+    "public_training_data": null,
+    "framework": [
+        "PyTorch",
+        "Transformers",
+        "safetensors"
+    ],
+    "reference": "https://huggingface.co/l3cube-pune/hing-bert",
+    "similarity_fn_name": "cosine",
+    "use_instructions": null,
+    "training_datasets": null,
+    "adapted_from": null,
+    "superseded_by": null,
+    "modalities": [
+        "text"
+    ],
+    "model_type": [
+        "dense"
+    ],
+    "citation": null,
+    "contacts": null,
+    "experiment_kwargs": null,
+    "output_dtypes": null,
+    "extra_requirements_groups": null,
+    "loader": "SentenceTransformerEncoderWrapper",
+    "is_cross_encoder": false
+}

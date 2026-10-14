@@ -1,0 +1,12 @@
+{
+  "model": "l3cube-pune/hing-bert",
+  "lr": 2e-05,
+  "epochs": 3,
+  "batch_size": 32,
+  "seed": 544,
+  "train_minutes": 1.1,
+  "dev_macro_f1": 0.663521595411403,
+  "test_macro_f1": 0.7302785198618532,
+  "test_accuracy": 0.728,
+  "saved_to": "/scratch1/mgordy/sentimix-models/12917727/l3cube-pune__hing-bert"
+}

@@ -1,0 +1,38 @@
+# Python / environments
+.venv/
+__pycache__/
+*.pyc
+
+# Editor / local tooling
+.claude/
+.vscode/
+
+# Model artifacts and training checkpoints (multi-GB; regenerate on CARC, see NOTES.md)
+embeddings/results/*/checkpoints/
+checkpoint-*/
+*.safetensors
+*.pt
+*.pth
+*.bin
+
+# Slurm logs and LLM run state
+logs/
+llm/runs/
+
+# Datasets: raw data is not redistributed here (licenses differ). Each dataset dir has a
+# SOURCE.md saying where to get it; scripts and derived small tables stay tracked.
+datasets/pretraining/hingcorpus/*.tar.gz
+datasets/perturbations/dakshina-hi/hi/
+datasets/perturbations/hinglishnorm/*.json
+datasets/perturbations/hinglishnorm/graph/out/
+datasets/sentiment/sentimix/*.txt
+datasets/sentiment/sentimix/readable/
+datasets/sentiment/sentimix/*.csv
+datasets/perturbations/hinglishnorm/graph/*.csv
+
+# Local-only folders
+docs/
+adjacent/
+tools/
+papers/
+dump.md

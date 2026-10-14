@@ -1,0 +1,86 @@
+{
+  "dataset_revision": "fe3ea6b93097e7a2eb1356ad3665fd01667ac6be",
+  "task_name": "UrduRomanSentimentClassification.v2",
+  "mteb_version": "2.24.4",
+  "scores": {
+    "test": [
+      {
+        "scores_per_experiment": [
+          {
+            "accuracy": 0.594566,
+            "f1": 0.585545,
+            "f1_weighted": 0.592726,
+            "precision": 0.591378,
+            "precision_weighted": 0.593698,
+            "recall": 0.582416,
+            "recall_weighted": 0.594566,
+            "ap": null,
+            "ap_weighted": null
+          }
+        ],
+        "accuracy": 0.594566,
+        "f1": 0.585545,
+        "f1_weighted": 0.592726,
+        "precision": 0.591378,
+        "precision_weighted": 0.593698,
+        "recall": 0.582416,
+        "recall_weighted": 0.594566,
+        "ap": NaN,
+        "ap_weighted": NaN,
+        "main_score": 0.585545,
+        "hf_subset": "default",
+        "languages": [
+          "urd-Latn"
+        ],
+        "mteb_version": "2.24.4"
+      }
+    ]
+  },
+  "evaluation_time": 4.967999999997119,
+  "kg_co2_emissions": null,
+  "date": 1791660702.847961,
+  "evaluation_phases": [
+    {
+      "name": "Data loading",
+      "start": 0.0,
+      "end": 0.5149999999994179,
+      "split": "",
+      "subset": ""
+    },
+    {
+      "name": "Dataset transform",
+      "start": 0.5149999999994179,
+      "end": 0.5149999999994179,
+      "split": "",
+      "subset": ""
+    },
+    {
+      "name": "Encoding training samples",
+      "start": 0.6090000000003783,
+      "end": 2.514999999999418,
+      "split": "test",
+      "subset": "default"
+    },
+    {
+      "name": "Encoding test samples",
+      "start": 2.5929999999971187,
+      "end": 4.389999999999418,
+      "split": "test",
+      "subset": "default"
+    },
+    {
+      "name": "Running experiment (0/1)",
+      "start": 4.389999999999418,
+      "end": 4.952999999997701,
+      "split": "test",
+      "subset": "default"
+    },
+    {
+      "name": "Scoring",
+      "start": 4.389999999999418,
+      "end": 4.952999999997701,
+      "split": "test",
+      "subset": "default"
+    }
+  ]
+}

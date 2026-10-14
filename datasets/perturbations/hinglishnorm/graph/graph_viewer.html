@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hinglishNorm Variant Graph</title>
+<script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+<style>
+  :root { --bg:#fafafa; --panel:#fff; --fg:#222; --muted:#777; --line:#ddd; --accent:#e4572e; --node:#4c78a8; --canon:#f2a541; --edge:#9aa; --bad:#d62728; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#16181c; --panel:#1f2228; --fg:#e6e6e6; --muted:#999; --line:#333; --node:#6f9bd1; --edge:#667; } }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.4 system-ui, sans-serif; background:var(--bg); color:var(--fg); display:grid; grid-template-columns:300px 1fr 300px; height:100vh; }
+  aside { background:var(--panel); border-right:1px solid var(--line); padding:12px; overflow:auto; }
+  aside.right { border-right:0; border-left:1px solid var(--line); }
+  h2 { font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:16px 0 6px; }
+  h2:first-child { margin-top:0; }
+  label { display:block; margin:6px 0 2px; }
+  label span { float:right; color:var(--muted); font-variant-numeric:tabular-nums; }
+  input[type=text] { width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); }
+  input[type=range] { width:100%; }
+  .row { display:flex; gap:6px; align-items:center; margin:4px 0; }
+  button { padding:5px 10px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); cursor:pointer; }
+  button:hover { border-color:var(--accent); }
+  #graph { width:100%; height:100vh; }
+  .stat { color:var(--muted); font-size:12px; margin-top:6px; }
+  ol { padding-left:22px; margin:4px 0; }
+  li { cursor:pointer; margin:2px 0; }
+  li:hover { color:var(--accent); }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  td, th { text-align:left; padding:2px 4px; border-bottom:1px solid var(--line); }
+  td.n { text-align:right; font-variant-numeric:tabular-nums; }
+  .w { cursor:pointer; color:var(--node); }
+  .w:hover { text-decoration:underline; }
+  .flag { color:var(--bad); font-size:11px; }
+  .legend span { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px; vertical-align:middle; }
+</style>
+</head>
+<body>
+<aside>
+  <h2>Find a word</h2>
+  <input id="q" type="text" list="words" placeholder="e.g. nhi, bahut, plz" autocomplete="off">
+  <datalist id="words"></datalist>
+  <div class="row" style="margin-top:8px">
+    <label style="margin:0"><input type="radio" name="mode" value="comp" checked> whole cluster</label>
+    <label style="margin:0"><input type="radio" name="mode" value="ego"> neighborhood</label>
+  </div>
+  <label>Neighborhood radius <span id="radiusV"></span></label>
+  <input id="radius" type="range" min="1" max="6" value="2">
+
+  <h2>Edge filters</h2>
+  <label>Min weight (times seen) <span id="minWV"></span></label>
+  <input id="minW" type="range" min="1" max="20" value="1">
+  <label>Min share of source's uses <span id="minSV"></span></label>
+  <input id="minS" type="range" min="0" max="0.9" step="0.05" value="0">
+  <label>Max edit distance (0–1) <span id="maxEV"></span></label>
+  <input id="maxE" type="range" min="0.1" max="1" step="0.05" value="1">
+  <div class="row"><label style="margin:0"><input id="noSuspect" type="checkbox"> hide script-flagged edges</label></div>
+
+  <h2>Cut ambiguous hubs</h2>
+  <label>Drop nodes pointing to ≥ N different words <span id="hubV"></span></label>
+  <input id="hub" type="range" min="2" max="15" value="15">
+  <div class="stat">15 = off. A raw form like <i>ur</i> → your / you / are glues unrelated clusters.</div>
+
+  <h2>Largest clusters <span class="stat" id="compStat"></span></h2>
+  <ol id="comps"></ol>
+</aside>
+
+<div id="graph"></div>
+
+<aside class="right">
+  <h2>Legend</h2>
+  <div class="legend stat">
+    <div><span style="background:var(--accent)"></span>searched word</div>
+    <div><span style="background:var(--canon)"></span>cluster canonical (most chosen as target)</div>
+    <div><span style="background:var(--node)"></span>other spelling · size = frequency</div>
+    <div>arrow = typed → normalized · width = weight · <b style="color:var(--bad)">red</b> = flagged</div>
+    <div>click a node for details, double-click to recenter</div>
+  </div>
+  <h2>Selected</h2>
+  <div id="info" class="stat">Nothing selected.</div>
+</aside>
+
+<script>
+const G = /*__GRAPH_DATA__*/null;
+const $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const MAX_NODES = 600;
+
+// index
+const nodeById = new Map(G.nodes.map(n => [n.id, n]));
+const outE = new Map(), inE = new Map();
+G.nodes.forEach(n => { outE.set(n.id, []); inE.set(n.id, []); });
+G.edges.forEach(e => { outE.get(e.s).push(e); inE.get(e.t).push(e); });
+const wordsSorted = [...G.nodes].filter(n => outE.get(n.id).length || inE.get(n.id).length)
+  .sort((a, b) => (b.raw + b.norm) - (a.raw + a.norm));
+$("words").innerHTML = wordsSorted.slice(0, 3000).map(n => `<option value="${n.id}">`).join("");
+
+function params() {
+  return { minW:+$("minW").value, minS:+$("minS").value, maxE:+$("maxE").value, noSus:$("noSuspect").checked,
+           hub:+$("hub").value, radius:+$("radius").value, mode:document.querySelector("input[name=mode]:checked").value };
+}
+function syncLabels() {
+  const p = params();
+  $("minWV").textContent = p.minW; $("minSV").textContent = p.minS.toFixed(2); $("maxEV").textContent = p.maxE.toFixed(2);
+  $("hubV").textContent = p.hub >= 15 ? "off" : p.hub; $("radiusV").textContent = p.radius;
+}
+
+// filtered adjacency (undirected) under current params
+function filtered(p) {
+  const cut = new Set();
+  if (p.hub < 15) G.nodes.forEach(n => { if (outE.get(n.id).length >= p.hub) cut.add(n.id); });
+  const keep = e => e.w >= p.minW && e.share >= p.minS && e.edit <= p.maxE && !(p.noSus && e.flags) && !cut.has(e.s) && !cut.has(e.t);
+  const adj = new Map();
+  const edges = G.edges.filter(keep);
+  edges.forEach(e => {
+    if (!adj.has(e.s)) adj.set(e.s, []); if (!adj.has(e.t)) adj.set(e.t, []);
+    adj.get(e.s).push(e.t); adj.get(e.t).push(e.s);
+  });
+  return { adj, edges, cut };
+}
+
+function bfs(adj, start, maxDepth) {
+  const seen = new Map([[start, 0]]), q = [start];
+  while (q.length) {
+    const x = q.shift(), d = seen.get(x);
+    if (d >= maxDepth) continue;
+    for (const y of adj.get(x) || []) if (!seen.has(y)) { seen.set(y, d + 1); q.push(y); }
+  }
+  return seen;
+}
+
+function canonicalOf(ids) {
+  let best = null;
+  for (const id of ids) { const n = nodeById.get(id); if (!best || n.norm > best.norm || (n.norm === best.norm && n.raw > best.raw)) best = n; }
+  return best && best.id;
+}
+
+function components(F) {
+  const seen = new Set(), comps = [];
+  for (const id of F.adj.keys()) {
+    if (seen.has(id)) continue;
+    const c = [...bfs(F.adj, id, Infinity).keys()];
+    c.forEach(x => seen.add(x));
+    if (c.length > 1) comps.push(c);
+  }
+  return comps.sort((a, b) => b.length - a.length);
+}
+
+let net = null, current = null;
+function render(word) {
+  const p = params(); syncLabels();
+  const F = filtered(p);
+  const comps = components(F);
+  $("compStat").textContent = `(${comps.length} with ≥2 words)`;
+  $("comps").innerHTML = comps.slice(0, 40).map(c => `<li data-w="${canonicalOf(c)}">${canonicalOf(c)} <span class="stat">(${c.length})</span></li>`).join("");
+  document.querySelectorAll("#comps li").forEach(li => li.onclick = () => go(li.dataset.w));
+
+  if (!word) word = current;
+  if (!word) return;
+  current = word;
+  if (!nodeById.has(word)) { $("info").textContent = `"${word}" is not in hinglishNorm.`; return; }
+  const cutNote = F.cut.has(word) ? " · this word is cut as an ambiguous hub at this setting" : "";
+  const depth = p.mode === "ego" ? p.radius : Infinity;
+  const reach = bfs(F.adj, word, depth);
+  let ids = [...reach.keys()];
+  let note = "";
+  if (ids.length > MAX_NODES) {
+    ids.sort((a, b) => reach.get(a) - reach.get(b)); ids = ids.slice(0, MAX_NODES);
+    note = ` · showing nearest ${MAX_NODES} of ${reach.size}`;
+  }
+  const idSet = new Set(ids), canon = canonicalOf(ids);
+  const nodes = ids.map(id => {
+    const n = nodeById.get(id), f = n.raw + n.norm;
+    const color = id === word ? css("--accent") : id === canon ? css("--canon") : css("--node");
+    return { id, label:id, value:f, color:{ background:color, border:color },
+             font:{ color:css("--fg"), size:14 }, title:`${id}\nkept ${n.kept} · typed ${n.raw} · target ${n.norm}` };
+  });
+  const edges = F.edges.filter(e => idSet.has(e.s) && idSet.has(e.t)).map(e => ({
+    from:e.s, to:e.t, value:e.w, arrows:"to",
+    color:{ color: e.flags ? css("--bad") : css("--edge"), opacity:.8 },
+    title:`${e.s} → ${e.t}\nweight ${e.w} · share ${e.share.toFixed(2)} · edit ${e.edit.toFixed(2)}${e.flags ? "\n" + e.flags : ""}`
+  }));
+  const data = { nodes:new vis.DataSet(nodes), edges:new vis.DataSet(edges) };
+  const opts = {
+    nodes:{ shape:"dot", scaling:{ min:6, max:40 } },
+    edges:{ scaling:{ min:1, max:10 }, smooth:false },
+    physics:{ solver:"forceAtlas2Based", forceAtlas2Based:{ gravitationalConstant:-60, springLength:90 }, stabilization:{ iterations:200 } },
+    interaction:{ hover:true, tooltipDelay:100 }
+  };
+  if (net) net.destroy();
+  net = new vis.Network($("graph"), data, opts);
+  net.on("click", ev => { if (ev.nodes.length) showInfo(ev.nodes[0]); });
+  net.on("doubleClick", ev => { if (ev.nodes.length) go(ev.nodes[0]); });
+  net.once("stabilizationIterationsDone", () => net.setOptions({ physics:false }));
+  showInfo(word, `${ids.length} words, ${edges.length} edges${note}${cutNote}`);
+}
+
+function edgeRows(list, dirKey) {
+  if (!list.length) return `<tr><td colspan="4">none</td></tr>`;
+  return list.sort((a, b) => b.w - a.w).map(e => `<tr><td><span class="w" data-w="${e[dirKey]}">${e[dirKey]}</span>
+    ${e.flags ? `<div class="flag">${e.flags}</div>` : ""}</td><td class="n">${e.w}</td><td class="n">${e.share.toFixed(2)}</td><td class="n">${e.edit.toFixed(2)}</td></tr>`).join("");
+}
+function showInfo(id, extra) {
+  const n = nodeById.get(id);
+  $("info").innerHTML = `<div style="font-size:18px;color:var(--fg)">${id}</div>
+    ${extra ? `<div>${extra}</div>` : ""}
+    <div>kept as-is ${n.kept} · typed ${n.raw} · chosen as target ${n.norm}</div>
+    <div>tags: ${n.tags || "–"}</div>
+    <h2>normalized to →</h2><table><tr><th>word</th><th>w</th><th>share</th><th>edit</th></tr>${edgeRows([...outE.get(id)], "t")}</table>
+    <h2>← normalized from</h2><table><tr><th>word</th><th>w</th><th>share</th><th>edit</th></tr>${edgeRows([...inE.get(id)], "s")}</table>`;
+  document.querySelectorAll("#info .w").forEach(el => el.onclick = () => go(el.dataset.w));
+}
+
+function go(w) {
+  w = (w || "").trim().toLowerCase();
+  if (!w) return;
+  $("q").value = w;
+  try { history.replaceState(null, "", "#" + encodeURIComponent(w)); } catch (e) {}
+  render(w);
+}
+
+$("q").addEventListener("change", () => go($("q").value));
+$("q").addEventListener("keydown", e => { if (e.key === "Enter") go($("q").value); });
+["minW", "minS", "maxE", "hub", "radius"].forEach(id => $(id).addEventListener("input", () => render()));
+["noSuspect"].forEach(id => $(id).addEventListener("change", () => render()));
+document.querySelectorAll("input[name=mode]").forEach(r => r.addEventListener("change", () => render()));
+syncLabels();
+render();
+go(decodeURIComponent(location.hash.slice(1)) || "bahut");
+</script>
+</body>
+</html>

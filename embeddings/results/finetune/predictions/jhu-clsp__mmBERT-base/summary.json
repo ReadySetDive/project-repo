@@ -1,0 +1,12 @@
+{
+  "model": "jhu-clsp/mmBERT-base",
+  "lr": 5e-05,
+  "epochs": 3,
+  "batch_size": 32,
+  "seed": 544,
+  "train_minutes": 2.2,
+  "dev_macro_f1": 0.6393479904935363,
+  "test_macro_f1": 0.6922066465224778,
+  "test_accuracy": 0.6876666666666666,
+  "saved_to": "/scratch1/mgordy/sentimix-models/12917727/jhu-clsp__mmBERT-base"
+}

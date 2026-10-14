@@ -1,0 +1,12 @@
+{
+  "model": "codefuse-ai/F2LLM-v2-0.6B",
+  "lr": 1e-05,
+  "epochs": 3,
+  "batch_size": 32,
+  "seed": 544,
+  "train_minutes": 8.8,
+  "dev_macro_f1": 0.6349286247764772,
+  "test_macro_f1": 0.7131335978518839,
+  "test_accuracy": 0.7103333333333334,
+  "saved_to": "/scratch1/mgordy/sentimix-models/12917727/codefuse-ai__F2LLM-v2-0.6B"
+}

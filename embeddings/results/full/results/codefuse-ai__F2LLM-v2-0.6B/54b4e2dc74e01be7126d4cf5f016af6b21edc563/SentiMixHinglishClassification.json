@@ -1,0 +1,80 @@
+{
+  "dataset_revision": "local",
+  "task_name": "SentiMixHinglishClassification",
+  "mteb_version": "2.24.4",
+  "scores": {
+    "test": [
+      {
+        "scores_per_experiment": [
+          {
+            "accuracy": 0.628667,
+            "f1": 0.633487,
+            "f1_weighted": 0.630929,
+            "precision": 0.638525,
+            "precision_weighted": 0.63488,
+            "recall": 0.630071,
+            "recall_weighted": 0.628667,
+            "ap": null,
+            "ap_weighted": null
+          }
+        ],
+        "accuracy": 0.628667,
+        "f1": 0.633487,
+        "f1_weighted": 0.630929,
+        "precision": 0.638525,
+        "precision_weighted": 0.63488,
+        "recall": 0.630071,
+        "recall_weighted": 0.628667,
+        "ap": NaN,
+        "ap_weighted": NaN,
+        "main_score": 0.633487,
+        "hf_subset": "default",
+        "languages": [
+          "hin-Latn",
+          "eng-Latn"
+        ],
+        "mteb_version": "2.24.4"
+      }
+    ]
+  },
+  "evaluation_time": 100.57938430000286,
+  "kg_co2_emissions": null,
+  "date": 1791659817.545187,
+  "evaluation_phases": [
+    {
+      "name": "Data loading",
+      "start": 0.0,
+      "end": 0.5413699000018823,
+      "split": "",
+      "subset": ""
+    },
+    {
+      "name": "Encoding training samples",
+      "start": 1.4166656000015792,
+      "end": 80.82900910000171,
+      "split": "test",
+      "subset": "default"
+    },
+    {
+      "name": "Encoding test samples",
+      "start": 80.93775590000223,
+      "end": 97.75203909999982,
+      "split": "test",
+      "subset": "default"
+    },
+    {
+      "name": "Running experiment (0/1)",
+      "start": 97.76501250000001,
+      "end": 100.56072689999928,
+      "split": "test",
+      "subset": "default"
+    },
+    {
+      "name": "Scoring",
+      "start": 97.75206539999999,
+      "end": 100.56073409999954,
+      "split": "test",
+      "subset": "default"
+    }
+  ]
+}
